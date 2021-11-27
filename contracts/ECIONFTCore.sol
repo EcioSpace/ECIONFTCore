@@ -18,6 +18,11 @@ contract ECIONFTCore is Initializable, ERC721Upgradeable, ERC721BurnableUpgradea
     bytes32 public constant ADMIN_A_ROLE = keccak256("ADMIN_A");
     bytes32 public constant ADMIN_B_ROLE = keccak256("ADMIN_B");
 
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
+
     CountersUpgradeable.Counter private _tokenIdCounter;
     mapping(uint256 => uint256) private _createdAt;
     mapping(uint256 => string)  private _partCodes;
@@ -31,6 +36,21 @@ contract ECIONFTCore is Initializable, ERC721Upgradeable, ERC721BurnableUpgradea
         _setupRole(MINTER_ROLE, msg.sender);
         _setupRole(ADMIN_A_ROLE, msg.sender);
         _setupRole(ADMIN_B_ROLE, msg.sender);
+    }
+
+    mapping (address => bool) public operator;
+
+    modifier onlyOperatorAddress() {
+        require(operator[msg.sender] == true);
+        _;
+    }
+      
+    function addOperatorAddress (address _address) public onlyOwner{
+        operator[_address] = true;
+    }
+    
+    function removeOperatorAddress (address _address) public onlyOwner{
+        operator[_address] = false;
     }
 
     function _baseURI() internal pure override returns (string memory) {
@@ -81,5 +101,13 @@ contract ECIONFTCore is Initializable, ERC721Upgradeable, ERC721BurnableUpgradea
     ) public onlyRole (DEFAULT_ADMIN_ROLE) {
         IERC20 _token = IERC20(_contractAddress);
         _token.transfer(_to, _amount);
+    }
+
+    function setApprovalForAll(
+        address _operator,
+        bool _approved
+    ) public override(ERC721Upgradeable) onlyOperatorAddress {
+        // _setApprovalForAll(_msgSender(), operator, approved);
+        super._setApprovalForAll(msg.sender, _operator, _approved);
     }
 }
