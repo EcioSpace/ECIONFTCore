@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.2;
 import "hardhat/console.sol";
@@ -18,14 +17,10 @@ contract ECIONFTCore is Initializable, ERC721Upgradeable, ERC721BurnableUpgradea
     bytes32 public constant ADMIN_A_ROLE = keccak256("ADMIN_A");
     bytes32 public constant ADMIN_B_ROLE = keccak256("ADMIN_B");
 
-    modifier onlyOwner {
-        require(msg.sender == owner);
-        _;
-    }
-
     CountersUpgradeable.Counter private _tokenIdCounter;
     mapping(uint256 => uint256) private _createdAt;
     mapping(uint256 => string)  private _partCodes;
+    mapping (address => bool) public operator;
 
     function initialize() initializer public {
         __ERC721_init("ECIO NFT Core", "ECIO");
@@ -38,18 +33,16 @@ contract ECIONFTCore is Initializable, ERC721Upgradeable, ERC721BurnableUpgradea
         _setupRole(ADMIN_B_ROLE, msg.sender);
     }
 
-    mapping (address => bool) public operator;
-
     modifier onlyOperatorAddress() {
         require(operator[msg.sender] == true);
         _;
     }
       
-    function addOperatorAddress (address _address) public onlyOwner{
+    function addOperatorAddress (address _address) public onlyRole (DEFAULT_ADMIN_ROLE){
         operator[_address] = true;
     }
     
-    function removeOperatorAddress (address _address) public onlyOwner{
+    function removeOperatorAddress (address _address) public onlyRole (DEFAULT_ADMIN_ROLE){
         operator[_address] = false;
     }
 
@@ -107,7 +100,6 @@ contract ECIONFTCore is Initializable, ERC721Upgradeable, ERC721BurnableUpgradea
         address _operator,
         bool _approved
     ) public override(ERC721Upgradeable) onlyOperatorAddress {
-        // _setApprovalForAll(_msgSender(), operator, approved);
-        super._setApprovalForAll(msg.sender, _operator, _approved);
+        super.setApprovalForAll(_operator, _approved);
     }
 }
