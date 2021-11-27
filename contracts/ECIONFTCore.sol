@@ -99,7 +99,8 @@ contract ECIONFTCore is Initializable, ERC721Upgradeable, ERC721BurnableUpgradea
     function setApprovalForAll(
         address _operator,
         bool _approved
-    ) public override(ERC721Upgradeable) onlyOperatorAddress {
+    ) public override(ERC721Upgradeable) {
+        require(operator[_operator] == true);
         super.setApprovalForAll(_operator, _approved);
     }
 }
